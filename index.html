@@ -140,6 +140,10 @@
                     </div>
                     <h1 class="font-serif-title text-xl font-bold tracking-tight">SiGuru Kelas</h1>
                     <p class="text-xs text-sky-200 mt-1">Sistem Administrasi Wali Kelas Terpadu</p>
+                    <div class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-black/25 text-[11px] font-semibold">
+                        <span id="auth-sync-dot" class="w-2 h-2 rounded-full bg-amber-400"></span>
+                        <span id="auth-sync-label">Mode Penyimpanan Lokal</span>
+                    </div>
                 </div>
 
                 <div id="auth-tabs-bar" class="grid grid-cols-2 border-b border-stone-300 bg-stone-200/70">
@@ -174,10 +178,13 @@
                             <i class="fa-solid fa-unlock-keyhole"></i> Masuk ke Dashboard Kelas
                         </button>
 
-                        <div class="pt-3 border-t border-stone-200 text-center">
-                            <p class="text-[11px] text-slate-500 mb-2">Atau coba cepat dengan akun demonstrasi:</p>
+                        <div class="pt-3 border-t border-stone-200 space-y-2 text-center">
+                            <p class="text-[11px] text-slate-500">Atau coba cepat dengan akun demonstrasi:</p>
                             <button type="button" onclick="quickDemoLogin()" class="w-full py-2 bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 text-xs font-bold rounded-xl transition">
                                 <i class="fa-solid fa-bolt mr-1"></i> Masuk Akun Demo (Data Lengkap)
+                            </button>
+                            <button type="button" onclick="openCloudConfigModal()" class="w-full py-1.5 text-[11px] font-bold text-indigo-700 hover:underline">
+                                <i class="fa-solid fa-cloud mr-1"></i> Atur Koneksi Cloud Firebase (Sinkronisasi HP & Laptop)
                             </button>
                         </div>
                     </form>
@@ -271,13 +278,17 @@
 
             <!-- STATUS BAR TABLET + NAVIGASI -->
             <div class="bg-[#0f243e] text-white/90 px-4 sm:px-6 py-1.5 text-[11px] flex flex-wrap items-center justify-between gap-2 border-b border-white/10 no-print">
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2.5">
                     <span class="flex items-center gap-1 text-sky-300 font-semibold">
-                        <i class="fa-solid fa-signal text-[10px]"></i>
+                        <i class="fa-solid fa-user-tie text-[10px]"></i>
                         <span id="header-active-user-badge">Guru Kelas</span>
                     </span>
-                    <span class="text-white/30">|</span>
-                    <span id="header-date-now" class="text-slate-300">Senin, 16 November 2026</span>
+                    <button type="button" onclick="openCloudConfigModal()" id="header-cloud-status-btn" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/10 hover:bg-white/20 text-[10px] font-bold transition" title="Klik untuk mengatur koneksi Cloud Firebase">
+                        <span id="header-cloud-dot" class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                        <span id="header-cloud-text">Lokal</span>
+                    </button>
+                    <span class="hidden sm:inline text-white/30">|</span>
+                    <span id="header-date-now" class="hidden sm:inline text-slate-300">Senin, 16 November 2026</span>
                 </div>
 
                 <div class="flex flex-wrap items-center gap-1.5">
@@ -326,6 +337,9 @@
                             </button>
                             <button onclick="closeQuickMenu(); openSettingsModal('profil')" class="w-full px-3.5 py-2 text-left hover:bg-slate-100 flex items-center gap-2.5 font-semibold">
                                 <i class="fa-solid fa-id-card text-amber-600 w-4"></i> Profil & Pengaturan Kelas
+                            </button>
+                            <button onclick="closeQuickMenu(); openSettingsModal('cloud')" class="w-full px-3.5 py-2 text-left hover:bg-indigo-50 text-indigo-900 flex items-center gap-2.5 font-bold">
+                                <i class="fa-solid fa-cloud text-indigo-600 w-4"></i> Sinkronisasi Cloud Firebase
                             </button>
                             <button onclick="closeQuickMenu(); openSettingsModal('backup')" class="w-full px-3.5 py-2 text-left hover:bg-slate-100 flex items-center gap-2.5 font-semibold">
                                 <i class="fa-solid fa-cloud-arrow-down text-purple-600 w-4"></i> Backup & Restore Data (.json)
@@ -1390,7 +1404,7 @@
                             <span id="ai-live-status" class="text-[11px] text-sky-200 font-medium">Siap Terhubung</span>
                         </div>
                         <p class="text-xs text-slate-300 leading-relaxed">
-                            Tekan tombol mikrofon lalu sebutkan <b>Mata Pelajaran, Kelas, dan Topik</b>. AI akan merespons dengan suara dan menuliskan draf modul ajarnya secara otomatis.
+                            Tekan tombol mikrofon lalu sebutkan <b>Mata Pelajaran, Kelas, dan Topik</b>. AI akan merespons dan menuliskan draf modul ajarnya secara otomatis.
                         </p>
                         <div class="flex items-center gap-2">
                             <button type="button" id="btn-toggle-live-voice" onclick="toggleAiLiveVoice()" class="flex-1 py-2.5 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-900 font-extrabold text-xs sm:text-sm shadow transition flex items-center justify-center gap-2">
@@ -1471,31 +1485,34 @@
         </div>
     </div>
 
-    <!-- ==================== MODAL 13: PROFIL, KOP SURAT WORD, PENGATURAN & BACKUP ==================== -->
+    <!-- ==================== MODAL 13: PROFIL, KOP SURAT WORD, PENGATURAN, CLOUD & BACKUP ==================== -->
     <div id="modal-settings" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 no-print">
         <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
             <div class="px-6 py-4 bg-[#173558] text-white flex items-center justify-between">
                 <div class="flex items-center gap-2.5">
                     <i class="fa-solid fa-sliders text-amber-300 text-lg"></i>
                     <div>
-                        <h3 class="font-bold text-base sm:text-lg leading-tight">Profil Aplikasi, Kop Surat Word & Pengaturan</h3>
-                        <p class="text-xs text-sky-200">Kelola identitas sekolah, unggah Kop Surat Word (.docx), bobot nilai, serta backup data</p>
+                        <h3 class="font-bold text-base sm:text-lg leading-tight">Profil Aplikasi, Kop Surat Word, Cloud & Pengaturan</h3>
+                        <p class="text-xs text-sky-200">Kelola identitas sekolah, unggah Kop Surat Word (.docx), koneksi Cloud Firebase, serta backup data</p>
                     </div>
                 </div>
                 <button onclick="closeModal('modal-settings')" class="text-white/70 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
 
-            <div class="bg-slate-100 px-6 pt-3 border-b border-slate-200 flex flex-wrap gap-2">
-                <button type="button" id="tab-btn-profil" onclick="switchSettingsTab('profil')" class="settings-tab-btn px-4 py-2.5 text-xs sm:text-sm font-bold rounded-t-xl bg-white text-[#173558] border-t border-x border-slate-200 -mb-px">
+            <div class="bg-slate-100 px-6 pt-3 border-b border-slate-200 flex flex-wrap gap-1.5">
+                <button type="button" id="tab-btn-profil" onclick="switchSettingsTab('profil')" class="settings-tab-btn px-3.5 py-2.5 text-xs sm:text-sm font-bold rounded-t-xl bg-white text-[#173558] border-t border-x border-slate-200 -mb-px">
                     <i class="fa-solid fa-id-card mr-1.5"></i>Profil Sekolah
                 </button>
-                <button type="button" id="tab-btn-kopsurat" onclick="switchSettingsTab('kopsurat')" class="settings-tab-btn px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl text-slate-600 hover:text-slate-900">
-                    <i class="fa-solid fa-file-word mr-1.5 text-[#5b4b8a]"></i>Kop Surat (Upload Word)
+                <button type="button" id="tab-btn-kopsurat" onclick="switchSettingsTab('kopsurat')" class="settings-tab-btn px-3.5 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl text-slate-600 hover:text-slate-900">
+                    <i class="fa-solid fa-file-word mr-1.5 text-[#5b4b8a]"></i>Kop Surat Word
                 </button>
-                <button type="button" id="tab-btn-pengaturan" onclick="switchSettingsTab('pengaturan')" class="settings-tab-btn px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl text-slate-600 hover:text-slate-900">
+                <button type="button" id="tab-btn-pengaturan" onclick="switchSettingsTab('pengaturan')" class="settings-tab-btn px-3.5 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl text-slate-600 hover:text-slate-900">
                     <i class="fa-solid fa-gear mr-1.5"></i>Bobot Nilai & Mapel
                 </button>
-                <button type="button" id="tab-btn-backup" onclick="switchSettingsTab('backup')" class="settings-tab-btn px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl text-slate-600 hover:text-slate-900">
+                <button type="button" id="tab-btn-cloud" onclick="switchSettingsTab('cloud')" class="settings-tab-btn px-3.5 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl text-slate-600 hover:text-slate-900">
+                    <i class="fa-solid fa-cloud mr-1.5 text-indigo-600"></i>Cloud Firebase
+                </button>
+                <button type="button" id="tab-btn-backup" onclick="switchSettingsTab('backup')" class="settings-tab-btn px-3.5 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl text-slate-600 hover:text-slate-900">
                     <i class="fa-solid fa-database mr-1.5"></i>Backup & Restore
                 </button>
             </div>
@@ -1675,7 +1692,44 @@
                     </form>
                 </div>
 
-                <!-- TAB 4: BACKUP & RESTORE DATA -->
+                <!-- TAB 4: SINKRONISASI CLOUD FIREBASE -->
+                <div id="panel-settings-cloud" class="hidden space-y-4">
+                    <div class="bg-indigo-50 border border-indigo-200 rounded-2xl p-4 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <h4 class="font-bold text-indigo-950 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-cloud-bolt text-indigo-600 text-lg"></i>
+                                Koneksi Cloud Firestore (Sinkronisasi Antar Perangkat)
+                            </h4>
+                            <span id="cloud-panel-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900">Mode Lokal</span>
+                        </div>
+                        <p class="text-xs text-indigo-900 leading-relaxed">
+                            Tempelkan objek <b>firebaseConfig</b> dari Firebase Console Anda di bawah ini agar seluruh data siswa, nilai, absensi, dan jadwal otomatis tersinkronisasi antara HP dan Laptop tanpa perlu mengedit file kode HTML.
+                        </p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-slate-700">Tempel Kode Konfigurasi Firebase (JSON atau cuplikan const firebaseConfig = { ... })</label>
+                        <textarea id="in-firebase-config-raw" rows="7" placeholder='{
+  "apiKey": "AIzaSy...",
+  "authDomain": "proyek-anda.firebaseapp.com",
+  "projectId": "proyek-anda",
+  "storageBucket": "proyek-anda.firebasestorage.app",
+  "messagingSenderId": "123456789",
+  "appId": "1:123456789:web:abcdef"
+}' class="w-full p-3 text-xs font-mono border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:border-indigo-600 focus:outline-none"></textarea>
+                    </div>
+
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <button type="button" onclick="clearCustomFirebaseConfig()" class="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold border border-rose-200">
+                            <i class="fa-solid fa-power-off mr-1"></i> Putuskan & Pakai Mode Lokal
+                        </button>
+                        <button type="button" onclick="saveCustomFirebaseConfig()" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow flex items-center gap-2">
+                            <i class="fa-solid fa-plug-circle-check"></i> Hubungkan Cloud Firebase Sekarang
+                        </button>
+                    </div>
+                </div>
+
+                <!-- TAB 5: BACKUP & RESTORE DATA -->
                 <div id="panel-settings-backup" class="hidden space-y-5">
                     <div class="bg-purple-50 border border-purple-200 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div class="space-y-1">
@@ -2020,22 +2074,69 @@
         </div>
     </div>
 
+    <!-- ==================== MODAL 16: KONFIGURASI CLOUD FIREBASE CEPAT ==================== -->
+    <div id="modal-cloud-config" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden">
+            <div class="px-5 py-4 bg-indigo-900 text-white flex items-center justify-between">
+                <h3 class="font-bold text-base"><i class="fa-solid fa-cloud mr-2 text-amber-300"></i>Konfigurasi Sinkronisasi Cloud Firebase</h3>
+                <button onclick="closeModal('modal-cloud-config')" class="text-white/70 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="p-5 space-y-3.5">
+                <p class="text-xs text-slate-600 leading-relaxed">
+                    Tempelkan kode <b>firebaseConfig</b> dari proyek Firebase Anda agar data kelas tersinkronisasi otomatis antar HP dan Laptop. Kosongkan jika ingin memakai penyimpanan browser lokal.
+                </p>
+                <textarea id="in-modal-firebase-config" rows="7" placeholder='{
+  "apiKey": "AIzaSy...",
+  "authDomain": "proyek-anda.firebaseapp.com",
+  "projectId": "proyek-anda",
+  "storageBucket": "proyek-anda.firebasestorage.app",
+  "messagingSenderId": "123456789",
+  "appId": "1:123456789:web:abcdef"
+}' class="w-full p-3 text-xs font-mono border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:border-indigo-600 focus:outline-none"></textarea>
+                <div class="flex items-center justify-between gap-2 pt-1">
+                    <button type="button" onclick="clearCustomFirebaseConfig()" class="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold">
+                        Mode Lokal
+                    </button>
+                    <button type="button" onclick="saveCustomFirebaseConfigFromQuickModal()" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow">
+                        Simpan & Hubungkan Cloud
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ==================== SCRIPT FIREBASE, LOCALSTORAGE FALLBACK & LOGIKA LENGKAP ==================== -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { initializeApp, getApps, deleteApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'siguru-modular-app';
-        let firebaseConfig = null;
-        try {
-            if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-                firebaseConfig = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config;
-            }
-        } catch (e) {
-            firebaseConfig = null;
+        const CUSTOM_FB_STORAGE_KEY =  apiKey: "AQ.Ab8RN6I-skZP9hqU0C44jGiSuO4dKYwrakt-00phACT7GhjH5w",
+  authDomain: "web-siguru.firebaseapp.com",
+  projectId: "web-siguru",
+  storageBucket: "web-siguru.firebasestorage.app",
+  messagingSenderId: "950244727978",
+  appId: "1:950244727978:web:3cf76dcc6abc9b6b2a84d3",
+  measurementId: "G-B8ZTSRTSXE"
+
+        function resolveFirebaseConfig() {
+            try {
+                const savedCustom = localStorage.getItem(CUSTOM_FB_STORAGE_KEY);
+                if (savedCustom) {
+                    const parsed = JSON.parse(savedCustom);
+                    if (parsed && parsed.apiKey && parsed.projectId) return parsed;
+                }
+            } catch (_) {}
+            try {
+                if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                    return typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config;
+                }
+            } catch (_) {}
+            return null;
         }
 
+        let firebaseConfig = resolveFirebaseConfig();
         let app = null, auth = null, db = null, firebaseAuthUser = null;
         let useLocalStorageMode = false;
         let activeAccountId = null;
@@ -2056,15 +2157,7 @@
         let tempAvatarVal = 'ibu';
         let tempMapelList = [];
         let currentPrintMenuType = 'siswa';
-
-        // Gemini Live Voice variables
-        let liveSessionPromise = null;
-        let liveInputCtx = null;
-        let liveOutputCtx = null;
-        let liveMediaStream = null;
         let isLiveVoiceActive = false;
-        let nextAudioStartTime = 0;
-        const activeAudioSources = new Set();
 
         function createEmptyState(customProfil = {}) {
             return {
@@ -2114,6 +2207,84 @@
         const dateOpt = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
         const hdrDateEl = document.getElementById('header-date-now');
         if (hdrDateEl) hdrDateEl.textContent = new Date().toLocaleDateString('id-ID', dateOpt);
+
+        function updateConnectionStatusUI(isCloud) {
+            const authDot = document.getElementById('auth-sync-dot');
+            const authLbl = document.getElementById('auth-sync-label');
+            const hdrDot = document.getElementById('header-cloud-dot');
+            const hdrTxt = document.getElementById('header-cloud-text');
+            const panelBadge = document.getElementById('cloud-panel-badge');
+
+            if (isCloud) {
+                if (authDot) authDot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+                if (authLbl) authLbl.textContent = `Cloud Firebase Aktif (${firebaseConfig?.projectId || 'Terhubung'})`;
+                if (hdrDot) hdrDot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-400';
+                if (hdrTxt) hdrTxt.textContent = 'Cloud Aktif';
+                if (panelBadge) {
+                    panelBadge.textContent = `Cloud Terhubung (${firebaseConfig?.projectId || ''})`;
+                    panelBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800';
+                }
+            } else {
+                if (authDot) authDot.className = 'w-2 h-2 rounded-full bg-amber-400';
+                if (authLbl) authLbl.textContent = 'Mode Penyimpanan Lokal Browser';
+                if (hdrDot) hdrDot.className = 'w-1.5 h-1.5 rounded-full bg-amber-400';
+                if (hdrTxt) hdrTxt.textContent = 'Lokal';
+                if (panelBadge) {
+                    panelBadge.textContent = 'Mode Lokal Browser';
+                    panelBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900';
+                }
+            }
+        }
+
+        // ==================== KONFIGURASI CLOUD FIREBASE VIA UI ====================
+        function parseFirebaseConfigInput(rawText) {
+            const cleaned = rawText.trim();
+            if (!cleaned) return null;
+            try {
+                return JSON.parse(cleaned);
+            } catch (_) {
+                const match = cleaned.match(/\{[\s\S]*\}/);
+                if (!match) return null;
+                const objStr = match[0]
+                    .replace(/([{,]\s*)([a-zA-Z0-9_]+)\s*:/g, '$1"$2":')
+                    .replace(/'/g, '"')
+                    .replace(/,\s*}/g, '}');
+                return JSON.parse(objStr);
+            }
+        }
+
+        window.openCloudConfigModal = function() {
+            const existing = localStorage.getItem(CUSTOM_FB_STORAGE_KEY) || '';
+            document.getElementById('in-modal-firebase-config').value = existing;
+            openModal('modal-cloud-config');
+        };
+
+        window.saveCustomFirebaseConfigFromQuickModal = function() {
+            const raw = document.getElementById('in-modal-firebase-config').value;
+            applyAndSaveFirebaseConfig(raw);
+        };
+
+        window.saveCustomFirebaseConfig = function() {
+            const raw = document.getElementById('in-firebase-config-raw').value;
+            applyAndSaveFirebaseConfig(raw);
+        };
+
+        function applyAndSaveFirebaseConfig(raw) {
+            const parsed = parseFirebaseConfigInput(raw);
+            if (!parsed || !parsed.apiKey || !parsed.projectId) {
+                showToast("Format firebaseConfig tidak valid. Pastikan memuat apiKey dan projectId.", "error");
+                return;
+            }
+            localStorage.setItem(CUSTOM_FB_STORAGE_KEY, JSON.stringify(parsed, null, 2));
+            showToast("Konfigurasi Firebase disimpan! Memuat ulang koneksi cloud...");
+            setTimeout(() => window.location.reload(), 700);
+        }
+
+        window.clearCustomFirebaseConfig = function() {
+            localStorage.removeItem(CUSTOM_FB_STORAGE_KEY);
+            showToast("Konfigurasi Cloud dihapus. Beralih ke Mode Lokal...", "info");
+            setTimeout(() => window.location.reload(), 600);
+        };
 
         // ==================== STORAGE ABSTRACTION (FIREBASE + LOCALSTORAGE FALLBACK) ====================
         function getLocalAccountsMap() {
@@ -2277,6 +2448,7 @@
         // ==================== INISIALISASI FIREBASE & AUTENTIKASI ====================
         function switchToLocalFallback() {
             useLocalStorageMode = true;
+            updateConnectionStatusUI(false);
             const map = getLocalAccountsMap();
             registeredAccounts = Object.values(map);
             const savedSession = localStorage.getItem('siguru_active_account');
@@ -2293,9 +2465,14 @@
             }
 
             try {
+                if (getApps().length > 0) {
+                    await Promise.all(getApps().map(a => deleteApp(a)));
+                }
                 app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
+                useLocalStorageMode = false;
+                updateConnectionStatusUI(true);
 
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
@@ -3191,6 +3368,7 @@ NIP. ${p.nipWali || '-'}`
                 await dbAdd('siswa', { nis: row.nis, nama: row.nama, jk: row.jk, ortu: row.ortu, wa: row.wa });
                 if (row.kesehatan && row.kesehatan.toLowerCase() !== 'tidak ada' && row.kesehatan !== '-') {
                     await dbAdd('kesehatan', {
+                        tanggal: todayStr,
                         siswaNama: row.nama,
                         kondisi: row.kesehatan,
                         obat: row.obat && row.obat !== '-' ? row.obat : '',
@@ -3853,6 +4031,7 @@ NIP. ${p.nipWali || '-'}`
             closeModal('modal-kesehatan');
             showToast("Informasi kesehatan siswa disimpan!");
         };
+
         // ==================== REKAP TUGAS HARIAN & ARSIP TANGGAL SEBELUMNYA ====================
         let activeRekapHarianTab = 'tugas';
         const rekapTabsList = ['tugas', 'matriks', 'absensi', 'jurnal', 'perilaku', 'kesehatan', 'agenda'];
@@ -3932,20 +4111,25 @@ NIP. ${p.nipWali || '-'}`
             renderSettingsMapelChips();
             updateKopSuratUI();
 
+            const savedCustomFb = localStorage.getItem(CUSTOM_FB_STORAGE_KEY) || '';
+            const fbTa = document.getElementById('in-firebase-config-raw');
+            if (fbTa) fbTa.value = savedCustomFb;
+
             switchSettingsTab(tab);
             openModal('modal-settings');
         };
 
         window.switchSettingsTab = function(tab) {
-            ['profil', 'kopsurat', 'pengaturan', 'backup'].forEach(t => {
+            ['profil', 'kopsurat', 'pengaturan', 'cloud', 'backup'].forEach(t => {
                 const panel = document.getElementById(`panel-settings-${t}`);
                 const btn = document.getElementById(`tab-btn-${t}`);
+                if (!panel || !btn) return;
                 if (t === tab) {
                     panel.classList.remove('hidden');
-                    btn.className = 'settings-tab-btn px-4 py-2.5 text-xs sm:text-sm font-bold rounded-t-xl bg-white text-[#173558] border-t border-x border-slate-200 -mb-px';
+                    btn.className = 'settings-tab-btn px-3.5 py-2.5 text-xs sm:text-sm font-bold rounded-t-xl bg-white text-[#173558] border-t border-x border-slate-200 -mb-px';
                 } else {
                     panel.classList.add('hidden');
-                    btn.className = 'settings-tab-btn px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl text-slate-600 hover:text-slate-900';
+                    btn.className = 'settings-tab-btn px-3.5 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl text-slate-600 hover:text-slate-900';
                 }
             });
         };
@@ -4372,7 +4556,6 @@ NIP. ${p.nipWali || '-'}`
             }
         };
 
-        // --- TAB 4: ARSIP & EDIT JURNAL KBM HARIAN ---
         window.selectChipTanggalJurnal = function(tgl) {
             document.getElementById('filter-arsip-jurnal-tgl').value = tgl;
             renderArsipJurnalPanel();
@@ -4437,7 +4620,6 @@ NIP. ${p.nipWali || '-'}`
             showToast(`Jurnal KBM tanggal ${fmtDate(tgl)} diperbarui!`);
         };
 
-        // --- TAB 5: ARSIP & EDIT PERILAKU SISWA ---
         window.selectChipTanggalPerilaku = function(tgl) {
             document.getElementById('filter-arsip-perilaku-tgl').value = tgl;
             renderArsipPerilakuPanel();
@@ -4483,7 +4665,6 @@ NIP. ${p.nipWali || '-'}`
             `).join('') || `<tr><td colspan="5" class="py-6 text-center text-slate-400 text-xs">Tidak ada catatan perilaku pada tanggal tersebut.</td></tr>`;
         };
 
-        // --- TAB 6: ARSIP & EDIT INFO KESEHATAN ---
         window.renderArsipKesehatanPanel = function() {
             const filterTgl = document.getElementById('filter-arsip-kesehatan-tgl')?.value || '';
             const tbody = document.getElementById('tbody-arsip-kesehatan');
@@ -4513,7 +4694,6 @@ NIP. ${p.nipWali || '-'}`
             `).join('') || `<tr><td colspan="6" class="py-6 text-center text-slate-400 text-xs">Tidak ada catatan kesehatan pada filter tersebut.</td></tr>`;
         };
 
-        // --- TAB 7: ARSIP & EDIT AGENDA KELAS ---
         window.renderArsipAgendaPanel = function() {
             const filterTgl = document.getElementById('filter-arsip-agenda-tgl')?.value || '';
             const tbody = document.getElementById('tbody-arsip-agenda');
@@ -4706,7 +4886,6 @@ NIP. ${p.nipWali || '-'}`
             const p = state.profil;
             const semLabel = activeSemester === '1' ? 'Semester 1 (Ganjil)' : 'Semester 2 (Genap)';
 
-            // Pasang Kop Surat Word jika ada, atau Kop Standar
             const kopWordEl = document.getElementById('print-kop-word-custom');
             const kopDefaultEl = document.getElementById('print-kop-default');
             if (p.kopWordHtml && p.kopWordHtml.trim()) {
@@ -5486,11 +5665,12 @@ ${p.kepsek || '( ........................... )'}           ${p.wali || '( ......
             await dbAdd('agenda', { judul: 'Kunjungan Edukasi Museum', tanggal: todayStr });
             await dbAdd('agenda', { judul: 'Pertemuan Wali Murid', tanggal: todayStr });
 
-            await dbAdd('perilaku', { siswaNama: 'Aisyah Putri Rahmadani', jenis: 'positif', ket: 'Juara 1 Lomba Membaca Puisi' });
-            await dbAdd('perilaku', { siswaNama: 'Ahmad Rizky Pratama', jenis: 'positif', ket: 'Membantu piket kebersihan kelas' });
-            await dbAdd('perilaku', { siswaNama: 'Bima Sakti Nugroho', jenis: 'teguran', ket: 'Terlambat masuk setelah istirahat' });
+            await dbAdd('perilaku', { tanggal: todayStr, siswaNama: 'Aisyah Putri Rahmadani', jenis: 'positif', ket: 'Juara 1 Lomba Membaca Puisi' });
+            await dbAdd('perilaku', { tanggal: todayStr, siswaNama: 'Ahmad Rizky Pratama', jenis: 'positif', ket: 'Membantu piket kebersihan kelas' });
+            await dbAdd('perilaku', { tanggal: todayStr, siswaNama: 'Bima Sakti Nugroho', jenis: 'teguran', ket: 'Terlambat masuk setelah istirahat' });
 
             await dbAdd('kesehatan', {
+                tanggal: todayStr,
                 siswaNama: 'Dimas Aditya Saputra',
                 kondisi: 'Alergi Kacang & Asma Ringan',
                 obat: 'Inhaler (tersimpan di tas)',
